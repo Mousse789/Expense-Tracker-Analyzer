@@ -2,9 +2,10 @@ import numpy as np
 import pandas as pd
 import sqlite3
 from tensorflow import keras
-from tensorflow.python.keras.layers import Dense
-from tensorflow.python.keras.models import Sequential, Model
-from tensorflow.python.keras.layers import Input
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import LSTM
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import Input
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import IsolationForest
 from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
@@ -32,9 +33,6 @@ def fetch_expense_data(user_id):
     df['description'] = df['description'].astype(str)
 
     return df
-
-
-
 
 def train_lstm_model(user_id):
     data = fetch_expense_data(user_id)
