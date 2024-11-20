@@ -119,7 +119,8 @@ def add_expense():
         category = request.form['category']
         amount = request.form['amount']
         date = request.form['date']
-        create_expense(session['user_id'], category, amount, date)
+        description = request.form.get('description', '') # NEWLY ADDED
+        create_expense(session['user_id'], category, amount, date, description)
         flash('Expense added!', 'success')
         return redirect(url_for('view_expenses'))
     return render_template('add_expense.html')
