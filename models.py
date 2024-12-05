@@ -274,12 +274,13 @@ def update_user_profile(user_id, username=None, password=None, profile_image=Non
     db.users.update_one({"_id": user_id}, {"$set": updates})
 
 # Expense operations
-def create_expense(user_id, category, amount, date):
+def create_expense(user_id, category, amount, date, description):
     db.expenses.insert_one({
         "user_id": user_id,
         "category": category,
         "amount": amount,
-        "date": date
+        "date": date,
+        "description":description
     })
 
 def get_expenses_by_user_id(user_id):
