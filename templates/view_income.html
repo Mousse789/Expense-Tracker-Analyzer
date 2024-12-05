@@ -16,9 +16,9 @@
         {% if income %}
             {% for record in income %}
                 <tr>
-                    <td>{{ record[2] }}</td>
-                    <td>{{ record[3] }}</td>
-                    <td>{{ record[4] }}</td>
+                    <td>{{ record["source"] }}</td>
+                    <td>{{ record["amount"] }}</td>
+                    <td>{{ record["date"] }}</td>
                 </tr>
             {% endfor %}
         {% else %}

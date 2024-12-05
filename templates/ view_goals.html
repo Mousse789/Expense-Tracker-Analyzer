@@ -15,9 +15,9 @@
     <tbody>
         {% for goal in goals %}
         <tr>
-            <td>{{ goal[2] }}</td>
-            <td>{{ goal[3] }}</td>
-            <td>{{ goal[4] }}</td>
+            <td>{{ goal["goal"] }}</td>
+            <td>{{ goal["target_amount"] }}</td>
+            <td>{{ goal["current_amount"] }}</td>
         </tr>
         {% endfor %}
     </tbody>
