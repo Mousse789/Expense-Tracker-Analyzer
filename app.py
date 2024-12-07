@@ -76,7 +76,7 @@ def home():
         model, scaler = train_lstm_model(user_id)
         next_month_prediction = predict_next_month_lstm(user_id, model, scaler)
         return render_template('home.html', prediction=next_month_prediction)
-    return render_template('home.html')
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
