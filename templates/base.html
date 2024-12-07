@@ -3,92 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Personal Finance{% endblock %}</title>
+    <title>{% block title %}Expense Tracker{% endblock %}</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
+            font-family: 'Roboto', sans-serif;
             padding-top: 56px;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2); /* Subtle gradient background */
         }
+
+        /* Navbar Styling */
         .navbar {
-            background-color: #1a1a40; /* Dark blue color to match background */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
-            padding: 0.5rem 1rem;
+            background-color: #4e73df; /* Modern blue color */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Stronger shadow for depth */
+            padding: 0.8rem 1.5rem;
         }
+
         .navbar-brand {
-            color: #ffffff !important; /* White brand text */
+            color: #ffffff !important;
             font-weight: bold;
-            font-size: 1.5rem; /* Larger font size for brand */
+            font-size: 1.8rem;
+            text-transform: uppercase;
         }
+
         .navbar-nav .nav-link {
-            color: #ffffff !important; /* White nav links */
-            font-size: 1.1rem; /* Slightly larger font size */
+            color: #eaeaea !important;
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-transform: uppercase;
         }
+
         .navbar-nav .nav-item + .nav-item {
-            margin-left: 20px; /* Increased space between nav items */
+            margin-left: 25px;
         }
+
         .navbar-toggler {
-            border-color: rgba(255, 255, 255, 0.1); /* Light border for toggler */
+            border: none;
         }
+
         .navbar-toggler-icon {
-            color: #ffffff; /* White toggler icon */
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23ffffff' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba%280, 0, 0, 0.5%29' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
         }
+
         .profile-pic {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             object-fit: cover;
-            margin-right: 8px;
+            border: 2px solid #ffffff;
+            margin-right: 10px;
         }
+
         .dropdown-menu {
-            background-color: #343a40; /* Dark dropdown background */
+            background-color: #6c757d; /* Neutral gray background */
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
+
         .dropdown-item {
-            color: #ffffff !important; /* White dropdown items */
+            color: #ffffff !important;
+            font-weight: 500;
         }
+
         .dropdown-item:hover {
-            background-color: #495057; /* Slightly lighter hover background */
+            background-color: #5a6268;
+        }
+
+        /* Content Styling */
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            color: #4e73df;
+        }
+
+        p, a {
+            color: #5a5c69;
+        }
+
+        a:hover {
+            color: #4e73df;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-        <a class="navbar-brand" href="/">Personal Finance</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                {% if g.user %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <img src="{{ url_for('static', filename='profile_images/' ~ g.user.profile_image) }}" class="profile-pic" alt="Profile Picture">
-                            {{ g.user.username }}
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="/profile">Profile</a>
-                            <a class="dropdown-item" href="{{ url_for('home') }}">Home</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="/logout">Logout</a>
-                        </div>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/login">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/register">Register</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
-
-    <div class="container mt-5 pt-5">
-        {% block content %}{% endblock %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <a class="navbar-brand" href="/">Expense Tracker & Analyzer</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            {% if g.user %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <img src="{{ url_for('static', filename='profile_images/' ~ g.user.profile_image) }}" class="profile-pic" alt="Profile Picture">
+                    {{ g.user.username }}
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="/profile">Profile</a>
+                    <a class="dropdown-item" href="{{ url_for('home') }}">Home</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/logout">Logout</a>
+                </div>
+            </li>
+            {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="/login">Login</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/register">Register</a>
+            </li>
+            {% endif %}
+        </ul>
     </div>
+</nav>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- Main Content -->
+<div class="container" style="margin-top: 7rem;">
+    {% block content %}{% endblock %}
+</div>
+
+<!-- Footer -->
+<footer class="text-center mt-5" style="padding-top: 80px;">
+    <p class="text-muted" style="color: aliceblue !important;">&copy; 2024 Expense Tracker. All Rights Reserved.</p>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
