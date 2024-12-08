@@ -15,7 +15,7 @@ from fastapi.templating import Jinja2Templates
 from ml_model import train_lstm_model, \
     predict_next_month_lstm, detect_anomalies, cluster_expenses, recommend_savings_plan, fetch_expense_data, \
     detect_anomalies_autoencoder
-from models import get_user_by_username, create_user, create_expense, get_goals_by_user_id, create_goal, get_user_by_id, \
+from models import get_user_by_username, get_user_by_id, create_user, create_expense, get_goals_by_user_id, create_goal, get_user_by_id, \
     update_user_profile, create_income, get_income_by_user_id, get_expenses_fortbl_by_user_id, init_db
 
 logging.basicConfig(level=logging.INFO)
@@ -59,10 +59,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 async def home(request: Request):
     user_id = request.cookies.get('user_id')
     if user_id:
+        user = get_user_by_id(user_id)
         model, scaler = train_lstm_model(user_id)
         next_month_prediction = predict_next_month_lstm(user_id, model, scaler)
-        return templates.TemplateResponse("home.html", {"request": request, "prediction": next_month_prediction})
-    return templates.TemplateResponse("home.html", {"request": request})
+        return templates.TemplateResponse("home.html", {"request": request, "prediction": next_month_prediction, "user": user})
+    return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/login", response_class=HTMLResponse)
 async def get_login_page(request: Request):
@@ -80,7 +81,7 @@ async def login(
 ):
     user = get_user_by_username(username)
     if user and verify_password(password, user["password"]):
-        response = templates.TemplateResponse("home.html", {"request": request})
+        response = templates.TemplateResponse("home.html", {"request": request, "user": user})
         response.set_cookie(key="user_id", value=str(user["_id"]))
         return response
     return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
