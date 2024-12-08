@@ -256,7 +256,7 @@ def create_user(username, password, profile_image=None):
         return False
 
 def get_user_by_username(username):
-    print("get_user_by_username:" , db.users.find_one({"username": username}))
+    # print("get_user_by_username:" , db.users.find_one({"username": username}))
     return db.users.find_one({"username": username})
 
 def get_user_by_id(user_id):
@@ -285,7 +285,7 @@ def create_expense(user_id, category, amount, date, description):
     })
 
 def get_expenses_by_user_id(user_id):
-    print(user_id, list(db.expenses.find({"user_id": user_id})))
+    # print(user_id, list(db.expenses.find({"user_id": user_id})))
     return list(db.expenses.find({"user_id": user_id}))
 def get_all_months(user_id):
     pipeline = [
@@ -358,7 +358,7 @@ def get_expenses_by_month(selected_month, user_id):
 
 
 def get_expenses_fortbl_by_user_id(user_id):
-    print(user_id, list(db.expenses.find({"user_id": user_id})), )
+    # print(user_id, list(db.expenses.find({"user_id": user_id})), )
     return list(db.expenses.find({"user_id": user_id}))
 
 # Income operations

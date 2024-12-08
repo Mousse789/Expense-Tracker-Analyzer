@@ -12,9 +12,7 @@ from starlette.staticfiles import StaticFiles
 from werkzeug.utils import secure_filename
 from fastapi.templating import Jinja2Templates
 
-from ml_model import train_lstm_model, \
-    predict_next_month_lstm, detect_anomalies, cluster_expenses, recommend_savings_plan, fetch_expense_data, \
-    detect_anomalies_autoencoder
+from ml_model1 import train_lstm_model, predict_next_month_lstm, recommend_savings_plan, fetch_expense_data
 from models import get_user_by_username, get_user_by_id, create_user, create_expense, get_goals_by_user_id, create_goal, get_user_by_id, \
     update_user_profile, create_income, get_income_by_user_id, get_expenses_fortbl_by_user_id, init_db, \
     get_all_months, get_expenses_by_month
