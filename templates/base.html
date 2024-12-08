@@ -108,11 +108,11 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ml-auto">
-            {% if g.user %}
+            {% if user %}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <img src="{{ url_for('static', filename='profile_images/' ~ g.user.profile_image) }}" class="profile-pic" alt="Profile Picture">
-                    {{ g.user.username }}
+                    <img src="{{ request.url_for('static', path='profile_images/' ~ user.profile_image) }}" class="profile-pic" alt="Profile Picture">
+                    {{ user.username }}
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                     <a class="dropdown-item" href="/profile">Profile</a>

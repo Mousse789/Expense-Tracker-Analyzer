@@ -64,6 +64,13 @@ async def home(request: Request):
         return templates.TemplateResponse("home.html", {"request": request, "prediction": next_month_prediction})
     return templates.TemplateResponse("home.html", {"request": request})
 
+@app.get("/login", response_class=HTMLResponse)
+async def get_login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/register", response_class=HTMLResponse)
+async def get_register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
 
 @app.post("/login")
 async def login(
@@ -103,6 +110,9 @@ async def logout(request: Request):
     response.delete_cookie("user_id")
     return response
 
+@app.get("/add_expense", response_class=HTMLResponse)
+async def get_add_expense_page(request: Request):
+    return templates.TemplateResponse("add_expense.html", {"request": request})
 
 @app.post("/add_expense")
 async def add_expense(
@@ -114,11 +124,17 @@ async def add_expense(
 ):
     user_id = request.cookies.get("user_id")
     if not user_id:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Please login first"})
+        response = RedirectResponse(url="/login", status_code=303)
+        response.set_cookie(key="message", value="Please login first!", max_age=5)
+        return response
 
     # Call create_expense to insert the data into MongoDB
     create_expense(user_id, category, amount, date, description)
-    return templates.TemplateResponse("view_expenses.html", {"request": request, "message": "Expense added!"})
+
+    # Redirect to the view_expenses page with a success message
+    response = RedirectResponse(url="/view_expenses", status_code=303)
+    response.set_cookie(key="message", value="Expense added!", max_age=5)
+    return response
 
 
 @app.get("/view_expenses", response_class=HTMLResponse)
@@ -127,11 +143,18 @@ async def view_expenses(request: Request):
     if not user_id:
         return templates.TemplateResponse("login.html", {"request": request, "error": "Please login first"})
 
-    expenses = await get_expenses_fortbl_by_user_id(user_id)
+    expenses = get_expenses_fortbl_by_user_id(user_id)
     if not expenses:
         raise HTTPException(status_code=404, detail="No expenses found for this user.")
     return templates.TemplateResponse("view_expenses.html", {"request": request, "expenses": expenses})
 
+@app.get("/add_goal", response_class=HTMLResponse)
+async def get_add_goal_page(request: Request):
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return RedirectResponse(url=request.url_for("login"), status_code=303)
+
+    return templates.TemplateResponse("add_goal.html", {"request": request})
 
 @app.post("/add_goal", response_class=RedirectResponse)
 async def add_goal(
@@ -203,6 +226,14 @@ async def update_profile(request: Request, new_username: str = Form(...), new_pa
 
 
 # Endpoint to add income
+@app.get("/add_income", response_class=HTMLResponse)
+async def get_add_income_page(request: Request):
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return RedirectResponse(url=request.url_for("login"), status_code=303)
+
+    return templates.TemplateResponse("add_income.html", {"request": request})
+
 @app.post("/add_income", response_class=RedirectResponse)
 async def add_income(
         request: Request,
