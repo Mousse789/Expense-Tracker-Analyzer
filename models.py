@@ -373,31 +373,6 @@ def create_income(user_id, source, amount, date):
 def get_income_by_user_id(user_id):
     return list(db.income.find({"user_id": user_id}))
 
-# Goal operations
-def create_goal(user_id, goal, target_amount, current_amount):
-    db.goals.insert_one({
-        "user_id": user_id,
-        "goal": goal,
-        "target_amount": target_amount,
-        "current_amount": current_amount,
-    })
-
-def get_goals_by_user_id(user_id):
-    return list(db.goals.find({"user_id": user_id}))
-
-# Recurring expenses operations
-def create_recurring_expense(user_id, category, amount, frequency, next_due_date):
-    db.recurring_expenses.insert_one({
-        "user_id": user_id,
-        "category": category,
-        "amount": amount,
-        "frequency": frequency,
-        "next_due_date": next_due_date,
-    })
-
-def get_recurring_expenses_by_user_id(user_id):
-    return list(db.recurring_expenses.find({"user_id": user_id}))
-
 # Database reset (for testing purposes)
 def reset_db():
     collections = ["users", "expenses", "income", "goals", "recurring_expenses"]

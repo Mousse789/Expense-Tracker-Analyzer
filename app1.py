@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 from fastapi.templating import Jinja2Templates
 
 from ml_model1 import train_lstm_model, predict_next_month_lstm, recommend_savings_plan, fetch_expense_data
-from models import get_user_by_username, get_user_by_id, create_user, create_expense, get_goals_by_user_id, create_goal, get_user_by_id, \
+from models import get_user_by_username, get_user_by_id, create_user, create_expense, get_user_by_id, \
     update_user_profile, create_income, get_income_by_user_id, get_expenses_fortbl_by_user_id, init_db, \
     get_all_months, get_expenses_by_month
 
@@ -194,42 +194,6 @@ async def expenses_by_month(
             "user": user
         },
     )
-
-@app.get("/add_goal", response_class=HTMLResponse)
-async def get_add_goal_page(request: Request):
-    user_id = request.cookies.get("user_id")
-    if not user_id:
-        return RedirectResponse(url=request.url_for("login"), status_code=303)
-
-    return templates.TemplateResponse("add_goal.html", {"request": request})
-
-@app.post("/add_goal", response_class=RedirectResponse)
-async def add_goal(
-        request: Request,
-        goal: str = Form(...),
-        target_amount: float = Form(...),
-        current_amount: float = Form(...)
-):
-    user_id = request.cookies.get("user_id")  # Get the user_id from session
-    if not user_id:
-        return RedirectResponse(url="/login")
-
-    create_goal(user_id, goal, target_amount, current_amount)
-    #Any flash message????
-
-    # Redirect the user to view goals after adding the goal
-    return RedirectResponse(url="/view_goals", status_code=303)
-
-
-@app.get("/view_goals", response_class=HTMLResponse)
-async def view_goals(request: Request):
-    user_id = request.cookies.get("user_id")  # Get the user_id from session
-    if not user_id:
-        return RedirectResponse(url="/login")
-
-    # Retrieve the goals for the current user
-    goals = get_goals_by_user_id(user_id)
-    return templates.TemplateResponse("view_goals.html", {"request": request, "goals": goals})
 
 
 @app.get("/profile")

@@ -123,18 +123,6 @@
             </a>
         </div>
         <div class="card">
-            <a href="{{ url_for('add_goal') }}">
-                <img src="{{ request.url_for('static', path='icons/isometric-target-1.png') }}" alt="Add Goal">
-                <p>Add Goal</p>
-            </a>
-        </div>
-        <div class="card">
-            <a href="{{ url_for('view_goals') }}">
-                <img src="{{ request.url_for('static', path='icons/success.png') }}" alt="View Goals">
-                <p>View Goals</p>
-            </a>
-        </div>
-        <div class="card">
             <a href="{{ url_for('add_income') }}">
                 <img src="{{ request.url_for('static', path='icons/hand-with-dollar.png') }}" alt="Add Income">
                 <p>Add Income</p>
@@ -146,20 +134,6 @@
                 <p>View Income</p>
             </a>
         </div>
-        {#
-        <div class="card">
-            <a href="{{ url_for('view_anomalies') }}">
-                <img src="{{ request.url_for('static', path='icons/statistics.png') }}" alt="View Anomalies">
-                <p>View Anomalies</p>
-            </a>
-        </div>
-        <div class="card">
-            <a href="{{ url_for('view_expense_clusters') }}">
-                <img src="{{ request.url_for('static', path='icons/cluster.png') }}" alt="View Clusters">
-                <p>View Clusters</p>
-            </a>
-        </div>
-        #}
         <div class="card">
             <a href="{{ url_for('recommend_savings') }}">
                 <img src="{{ request.url_for('static', path='icons/piggy-bank.png') }}" alt="Recommend Savings">

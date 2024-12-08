@@ -2,7 +2,7 @@ from flask import Flask, redirect, url_for, session, request, render_template, f
 from authlib.integrations.flask_client import OAuth
 from werkzeug.utils import secure_filename
 import os
-from models import get_user_by_username, create_user, get_expenses_by_user_id, create_expense, get_goals_by_user_id, create_goal, get_user_by_id, update_user_profile, create_income, get_income_by_user_id, get_expenses_fortbl_by_user_id
+from models import get_user_by_username, create_user, get_expenses_by_user_id, create_expense, get_user_by_id, update_user_profile, create_income, get_income_by_user_id, get_expenses_fortbl_by_user_id
 import logging
 import sqlite3
 from ml_model import train_lstm_model,\
@@ -131,27 +131,6 @@ def view_expenses():
         return redirect(url_for('login'))
     expenses = get_expenses_fortbl_by_user_id(session['user_id'])
     return render_template('view_expenses.html', expenses=expenses)
-
-@app.route('/add_goal', methods=['GET', 'POST'])
-def add_goal():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if request.method == 'POST':
-        goal = request.form['goal']
-        target_amount = request.form['target_amount']
-        current_amount = request.form['current_amount']
-        create_goal(session['user_id'], goal, target_amount, current_amount)
-        flash('Goal added!', 'success')
-        return redirect(url_for('view_goals'))
-    return render_template(' add_goal.html')
-
-@app.route('/view_goals')
-def view_goals():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    goals = get_goals_by_user_id(session['user_id'])
-    return render_template(' view_goals.html', goals=goals)
-
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
