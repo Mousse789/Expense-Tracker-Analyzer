@@ -113,7 +113,11 @@ async def logout(request: Request):
 
 @app.get("/add_expense", response_class=HTMLResponse)
 async def get_add_expense_page(request: Request):
-    return templates.TemplateResponse("add_expense.html", {"request": request})
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Please login first"})
+    user = get_user_by_id(user_id)
+    return templates.TemplateResponse("add_expense.html", {"request": request, "user": user})
 
 @app.post("/add_expense")
 async def add_expense(
@@ -145,9 +149,10 @@ async def view_expenses(request: Request):
         return templates.TemplateResponse("login.html", {"request": request, "error": "Please login first"})
 
     expenses = get_expenses_fortbl_by_user_id(user_id)
+    user = get_user_by_id(user_id)
     if not expenses:
         raise HTTPException(status_code=404, detail="No expenses found for this user.")
-    return templates.TemplateResponse("view_expenses.html", {"request": request, "expenses": expenses})
+    return templates.TemplateResponse("view_expenses.html", {"request": request, "expenses": expenses, "user": user})
 
 @app.get("/add_goal", response_class=HTMLResponse)
 async def get_add_goal_page(request: Request):

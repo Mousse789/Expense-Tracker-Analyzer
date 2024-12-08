@@ -10,14 +10,15 @@
         body {
             font-family: 'Roboto', sans-serif;
             padding-top: 56px;
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2); /* Subtle gradient background */
+            background: linear-gradient(to bottom right, #74b9ff, #81ecec); /* Vibrant gradient background */
+            color: #2d3436; /* Dark text for readability */
         }
 
         /* Navbar Styling */
         .navbar {
-            background-color: #4e73df; /* Modern blue color */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Stronger shadow for depth */
-            padding: 0.8rem 1.5rem;
+            background-color: #0984e3; /* Bright blue color */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
+            padding: 1rem 1.5rem;
         }
 
         .navbar-brand {
@@ -25,25 +26,18 @@
             font-weight: bold;
             font-size: 1.8rem;
             text-transform: uppercase;
+            letter-spacing: 2px; /* Slight spacing for modern look */
         }
 
         .navbar-nav .nav-link {
-            color: #eaeaea !important;
+            color: #dfe6e9 !important;
             font-size: 1.1rem;
             font-weight: 500;
             text-transform: uppercase;
         }
 
         .navbar-nav .nav-item + .nav-item {
-            margin-left: 25px;
-        }
-
-        .navbar-toggler {
-            border: none;
-        }
-
-        .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23ffffff' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba%280, 0, 0, 0.5%29' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+            margin-left: 30px;
         }
 
         .profile-pic {
@@ -55,49 +49,73 @@
             margin-right: 10px;
         }
 
-        .dropdown-menu {
-            background-color: #6c757d; /* Neutral gray background */
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .dropdown-item {
-            color: #ffffff !important;
-            font-weight: 500;
-        }
-
-        .dropdown-item:hover {
-            background-color: #5a6268;
-        }
-
-        /* Content Styling */
+        /* Content Container */
         .container {
+            background-color: #ffffff; /* Crisp white for contrast */
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Smooth shadow for sharp view */
             padding: 2rem;
-            border-radius: 10px;
-            /*box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);*/
             margin-top: 2rem;
         }
 
         h1, h2, h3, h4, h5, h6 {
             font-weight: 700;
-            color: #4e73df;
+            color: #2d3436; /* Neutral dark color */
         }
 
         p, a {
-            color: #5a5c69;
+            color: #636e72;
         }
 
         a:hover {
-            color: #4e73df;
+            color: #0984e3; /* Hover effect matching navbar */
+            text-decoration: none;
         }
 
+        /* Table Styling */
+        table.table {
+            background-color: #ffffff;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table.table th {
+            background-color: #0984e3;
+            color: #ffffff;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 15px;
+            text-align: center;
+        }
+
+        table.table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #dfe6e9;
+            color: #2d3436;
+        }
+
+        table.table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Footer */
         footer {
             text-align: center;
             font-size: 0.9rem;
-            color: aliceblue;
+            color: #dfe6e9;
+            margin-top: 20px;
         }
 
+        footer p {
+            color: #dfe6e9 !important;
+        }
     </style>
+
 </head>
 <body>
 <!-- Navbar -->
@@ -134,7 +152,11 @@
 </nav>
 
 <!-- Main Content -->
-<div class="container" style="height: calc(100vh - 150px)">
+{% if user %}
+    <div class="container" style="height: calc(100vh - 150px)">
+{% else %}
+    <div class="container" style="height: calc(100vh - 150px); background: none;">
+{% endif %}
     {% block content %}{% endblock %}
 </div>
 
@@ -146,5 +168,7 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+{% block scripts %}{% endblock %}
 </body>
 </html>
