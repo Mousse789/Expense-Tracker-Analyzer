@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Expense Summary{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="text-center mb-4">
+        <h2 class="text-primary">Monthly Expense Summary</h2>
+        <p>Select a month to view expense distribution in a pie chart.</p>
+    </div>
+
+    <!-- Dropdown Section -->
+    <div class="d-flex justify-content-center mb-4">
+        <form method="POST" class="form-inline">
+            <label for="month" class="mr-2 text-muted">Select Month:</label>
+            <select name="month" id="month" class="form-control mr-2">
+                {% for month in all_months %}
+                <option value="{{ month }}" {% if month == selected_month %}selected{% endif %}>
+                    {{ month }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-success">View</button>
+        </form>
+    </div>
+
+    <!-- Pie Chart Section -->
+    {% if selected_month %}
+    <div class="card shadow-sm p-3 mb-4">
+        <div class="text-center mb-2">
+            <h4 class="text-info">Expenses for {{ selected_month }}</h4>
+        </div>
+        <div class="text-center">
+            <canvas id="expenseChart" width="300" height="300"></canvas>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- JS Section -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    {% if selected_month %}
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    const expenseData = {{ expense_data | tojson }};
+    const expenseChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(expenseData),
+            datasets: [{
+                label: 'Expense Distribution',
+                data: Object.values(expenseData),
+                backgroundColor: [
+                    '#FF6B6B', '#FF9F43', '#1DD1A1', '#54B949',
+                    '#48DBFB', '#FFC300', '#6A5ACD', '#FF1493'
+                ],
+                borderWidth: 2,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right' },
+                tooltip: { enabled: true }
+            }
+        }
+    });
+    {% endif %}
+</script>
+
+<style>
+    /* General styles */
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    h2 {
+        color: #333;
+    }
+
+    select.form-control {
+        border: 1px solid #6c757d;
+    }
+
+    button.btn-success {
+        transition: background-color 0.2s ease;
+    }
+
+    button.btn-success:hover {
+        background-color: #45a049;
+    }
+
+    canvas {
+        max-width: 300px;
+        max-height: 300px;
+        margin: auto;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .container {
+        max-width: 1200px;
+    }
+
+    .text-info {
+        color: #17a2b8;
+    }
+</style>
+{% endblock %}

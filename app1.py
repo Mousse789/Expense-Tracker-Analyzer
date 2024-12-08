@@ -16,7 +16,8 @@ from ml_model import train_lstm_model, \
     predict_next_month_lstm, detect_anomalies, cluster_expenses, recommend_savings_plan, fetch_expense_data, \
     detect_anomalies_autoencoder
 from models import get_user_by_username, get_user_by_id, create_user, create_expense, get_goals_by_user_id, create_goal, get_user_by_id, \
-    update_user_profile, create_income, get_income_by_user_id, get_expenses_fortbl_by_user_id, init_db
+    update_user_profile, create_income, get_income_by_user_id, get_expenses_fortbl_by_user_id, init_db, \
+    get_all_months, get_expenses_by_month
 
 logging.basicConfig(level=logging.INFO)
 
@@ -153,6 +154,48 @@ async def view_expenses(request: Request):
     if not expenses:
         raise HTTPException(status_code=404, detail="No expenses found for this user.")
     return templates.TemplateResponse("view_expenses.html", {"request": request, "expenses": expenses, "user": user})
+
+
+@app.api_route("/expenses_by_month", methods=["GET", "POST"], response_class=HTMLResponse)
+async def expenses_by_month(
+    request: Request,
+    selected_month: str = None,
+):
+    # Handle `GET` requests' query param vs POST form data
+    if request.method == "POST":
+        selected_month = (await request.form()).get('month')
+    else:
+        selected_month = request.query_params.get('month')
+
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        # If user is not logged in
+        return templates.TemplateResponse(
+            "login.html", {"request": request, "error": "Please login first"}
+        )
+
+    all_months = get_all_months()
+    expenses_by_category = {}
+
+    user = get_user_by_id(user_id)
+
+    if selected_month:
+        # Call DB logic for data fetch
+        result = get_expenses_by_month(selected_month)
+        expenses_by_category = {row["category"]: row["total"] for row in result}
+
+    # Send all dynamic data to frontend template
+    return templates.TemplateResponse(
+        "expenses_by_month.html",
+        {
+            "request": request,
+            "all_months": all_months,
+            "selected_month": selected_month,
+            "expense_data": expenses_by_category,
+            "user": user
+        },
+    )
 
 @app.get("/add_goal", response_class=HTMLResponse)
 async def get_add_goal_page(request: Request):

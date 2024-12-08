@@ -111,6 +111,12 @@
             </a>
         </div>
         <div class="card">
+            <a href="{{ url_for('expenses_by_month') }}">
+                <img src="{{ request.url_for('static', path='icons/icon-piechart.png') }}" alt="Monthly Expense Summary">
+                <p>Monthly Expense Summary</p>
+            </a>
+        </div>
+        <div class="card">
             <a href="{{ url_for('predict_expenses') }}">
                 <img src="{{ request.url_for('static', path='icons/icons8-graph-64.png') }}" alt="Predict Expenses">
                 <p>Predict Expenses</p>
