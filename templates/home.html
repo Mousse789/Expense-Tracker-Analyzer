@@ -6,7 +6,7 @@
 <style>
     body {
         font-family: 'Roboto', sans-serif;
-        background: url('{{ url_for('static', filename='icons/background1.jpg') }}') no-repeat center center;
+        background: url('{{ request.url_for('static', path='icons/background1.jpg') }}') no-repeat center center;
         background-size: cover;
         color: white;
         padding: 2rem .5rem;
@@ -101,61 +101,63 @@
     <div class="card-container">
         <div class="card">
             <a href="{{ url_for('add_expense') }}">
-                <img src="{{ url_for('static', filename='icons/icons8-dollar-banknote-48.png') }}" alt="Add Expense">
+                <img src="{{ request.url_for('static', path='icons/icons8-dollar-banknote-48.png') }}" alt="Add Expense">
                 <p>Add Expense</p>
             </a>
         </div>
         <div class="card">
             <a href="{{ url_for('view_expenses') }}">
-                <img src="{{ url_for('static', filename='icons/icons8-receipt-64.png') }}" alt="View Expenses">
+                <img src="{{ request.url_for('static', path='icons/icons8-receipt-64.png') }}" alt="View Expenses">
                 <p>View Expenses</p>
             </a>
         </div>
         <div class="card">
             <a href="{{ url_for('predict_expenses') }}">
-                <img src="{{ url_for('static', filename='icons/icons8-graph-64.png') }}" alt="Predict Expenses">
+                <img src="{{ request.url_for('static', path='icons/icons8-graph-64.png') }}" alt="Predict Expenses">
                 <p>Predict Expenses</p>
             </a>
         </div>
         <div class="card">
             <a href="{{ url_for('add_goal') }}">
-                <img src="{{ url_for('static', filename='icons/isometric-target-1.png') }}" alt="Add Goal">
+                <img src="{{ request.url_for('static', path='icons/isometric-target-1.png') }}" alt="Add Goal">
                 <p>Add Goal</p>
             </a>
         </div>
         <div class="card">
             <a href="{{ url_for('view_goals') }}">
-                <img src="{{ url_for('static', filename='icons/success.png') }}" alt="View Goals">
+                <img src="{{ request.url_for('static', path='icons/success.png') }}" alt="View Goals">
                 <p>View Goals</p>
             </a>
         </div>
         <div class="card">
             <a href="{{ url_for('add_income') }}">
-                <img src="{{ url_for('static', filename='icons/hand-with-dollar.png') }}" alt="Add Income">
+                <img src="{{ request.url_for('static', path='icons/hand-with-dollar.png') }}" alt="Add Income">
                 <p>Add Income</p>
             </a>
         </div>
         <div class="card">
             <a href="{{ url_for('view_income') }}">
-                <img src="{{ url_for('static', filename='icons/growth.png') }}" alt="View Income">
+                <img src="{{ request.url_for('static', path='icons/growth.png') }}" alt="View Income">
                 <p>View Income</p>
             </a>
         </div>
+        {#
         <div class="card">
             <a href="{{ url_for('view_anomalies') }}">
-                <img src="{{ url_for('static', filename='icons/statistics.png') }}" alt="View Anomalies">
+                <img src="{{ request.url_for('static', path='icons/statistics.png') }}" alt="View Anomalies">
                 <p>View Anomalies</p>
             </a>
         </div>
         <div class="card">
             <a href="{{ url_for('view_expense_clusters') }}">
-                <img src="{{ url_for('static', filename='icons/cluster.png') }}" alt="View Clusters">
+                <img src="{{ request.url_for('static', path='icons/cluster.png') }}" alt="View Clusters">
                 <p>View Clusters</p>
             </a>
         </div>
+        #}
         <div class="card">
             <a href="{{ url_for('recommend_savings') }}">
-                <img src="{{ url_for('static', filename='icons/piggy-bank.png') }}" alt="Recommend Savings">
+                <img src="{{ request.url_for('static', path='icons/piggy-bank.png') }}" alt="Recommend Savings">
                 <p>Recommend Savings</p>
             </a>
         </div>

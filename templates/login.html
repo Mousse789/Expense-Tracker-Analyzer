@@ -5,7 +5,7 @@
 {% block content %}
 <style>
     body {
-        background: url('{{ url_for('static', filename='icons/loginbackground1.jpg') }}') no-repeat center center;
+        background: url('{{ request.url_for('static', path='icons/loginbackground1.jpg') }}') no-repeat center center;
         background-size: cover;
         height: 100vh;
         color: #fff;
@@ -87,7 +87,7 @@
         <div class="login-card">
             <div class="card-body">
                 <h2>Login</h2>
-                <form method="POST" action="{{ url_for('login') }}">
+                <form method="POST" action="{{ request.url_for('login') }}">
                     <div class="form-group">
                         <label for="username" class="form-label">Username</label>
                         <input type="text" class="form-control" name="username" id="username" required>
