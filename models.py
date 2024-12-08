@@ -287,8 +287,11 @@ def create_expense(user_id, category, amount, date, description):
 def get_expenses_by_user_id(user_id):
     print(user_id, list(db.expenses.find({"user_id": user_id})))
     return list(db.expenses.find({"user_id": user_id}))
-def get_all_months():
+def get_all_months(user_id):
     pipeline = [
+        {
+            "$match": {"user_id": user_id}  # Filter expenses by user_id
+        },
         {
             "$addFields": {
                 "converted_date": {
@@ -320,8 +323,11 @@ def get_all_months():
     return [doc["_id"] for doc in result]
 
 
-def get_expenses_by_month(selected_month):
+def get_expenses_by_month(selected_month, user_id):
     pipeline = [
+        {
+                "$match": {"user_id": user_id}  # Filter expenses by user_id
+        },
         {
             # Convert date to proper Date type if it's stored incorrectly
             "$addFields": {

@@ -175,14 +175,14 @@ async def expenses_by_month(
             "login.html", {"request": request, "error": "Please login first"}
         )
 
-    all_months = get_all_months()
+    all_months = get_all_months(user_id)
     expenses_by_category = {}
 
     user = get_user_by_id(user_id)
 
     if selected_month:
         # Call DB logic for data fetch
-        result = get_expenses_by_month(selected_month)
+        result = get_expenses_by_month(selected_month, user_id)
         expenses_by_category = {row["category"]: row["total"] for row in result}
 
     # Send all dynamic data to frontend template
