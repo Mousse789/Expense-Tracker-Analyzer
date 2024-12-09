@@ -372,6 +372,38 @@ def create_income(user_id, source, amount, date):
 def get_income_by_user_id(user_id):
     return list(db.income.find({"user_id": user_id}))
 
+
+def get_income_months():
+    months_cursor = db.income.aggregate([
+        {"$addFields": {"converted_date": {"$toDate": "$date"}}},
+        {"$addFields": {"month": {"$dateToString": {"format": "%Y-%m", "date": "$converted_date"}}}},
+        {"$group": {"_id": "$month"}},
+        {"$sort": {"_id": 1}}
+    ])
+    months_list = [doc["_id"] for doc in months_cursor]
+    return months_list
+
+
+
+def aggregate_income_by_month_and_category(user_id, selected_month):
+    """Aggregate income data by categories filtered by month."""
+    pipeline = [
+        {"$match": {"user_id": user_id}},
+        {"$addFields": {"converted_date": {"$toDate": "$date"}}},
+        {"$addFields": {"month": {"$dateToString": {"format": "%Y-%m", "date": "$converted_date"}}}},
+        {"$match": {"month": selected_month}},
+        {
+            "$group": {
+                "_id": "$source",
+                "total": {"$sum": "$amount"}
+            }
+        }
+    ]
+    result = list(db.income.aggregate(pipeline))
+    return [{"source": record["_id"], "total": record["total"]} for record in result]
+
+
+
 # Database reset (for testing purposes)
 def reset_db():
     collections = ["users", "expenses", "income", "goals", "recurring_expenses"]

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}View Income Dashboard{% endblock %}
+
+{% block content %}
+
+<style>
+    #incomeChart {
+        max-width: 100%;
+        height: 400px !important;
+        display: block;
+    }
+</style>
+<div class="row justify-content-center" style="height: 700px">
+    <div class="col-md-8">
+        <h2 class="text-center">View Income Breakdown</h2>
+
+        <form method="GET" class="form-inline justify-content-center mt-3">
+            <label for="month" class="mr-2">Select Month:</label>
+            <select name="month" id="month" class="form-control mr-2">
+                {% for month in months %}
+                <option value="{{ month }}" {% if month == selected_month %}selected{% endif %}>
+                    {{ month }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">View</button>
+        </form>
+
+
+
+        {% if income %}
+        <!-- Income Bar Chart -->
+        <div class="mt-4">
+            <h3 class="text-center">Income Distribution for {{ selected_month }}</h3>
+            <canvas id="incomeChart" width="400" height="400"></canvas>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    {% if income %}
+    const ctx = document.getElementById('incomeChart').getContext('2d');
+    const incomeData = {{ income | tojson }};
+
+    // Define specific colors for each category
+    const categoryColors = {
+        'Salary': '#36a2eb',
+        'Others': '#ff6384',
+        'Gift': '#ff9f40',
+        'Rent': '#4bc0c0'
+    };
+
+    // Map colors to income data categories
+    const colors = incomeData.map(e => categoryColors[e.source] || '#f2ddaa'); // Default to gray if category isn't matched
+
+    const incomeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: incomeData.map(e => e.source),
+            datasets: [{
+                label: 'Income Amount',
+                data: incomeData.map(e => e.total),
+                backgroundColor: colors
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Income Sources' }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Amount' }
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+
+
+{% endblock %}

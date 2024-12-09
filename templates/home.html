@@ -155,8 +155,14 @@
         </div>
         <div class="card">
             <a href="{{ url_for('view_income') }}">
-                <img src="{{ request.url_for('static', path='icons/growth.png') }}" alt="View Income">
+                <img src="{{ request.url_for('static', path='icons/up_12527981.png') }}" alt="View Income">
                 <p>View Income</p>
+            </a>
+        </div>
+        <div class="card">
+            <a href="{{ url_for('income_dashboard') }}">
+                <img src="{{ url_for('static', path='icons/growth.png') }}" alt="Monthly Income Breakdown">
+                <p class="text-center">Monthly Income Breakdown</p>
             </a>
         </div>
         <div class="card">

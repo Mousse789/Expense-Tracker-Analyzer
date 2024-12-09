@@ -15,7 +15,7 @@ from fastapi.templating import Jinja2Templates
 from ml_model1 import train_lstm_model, predict_next_month_lstm, recommend_savings_plan, fetch_expense_data
 from models import get_user_by_username, get_user_by_id, create_user, create_expense, get_user_by_id, \
     update_user_profile, create_income, get_income_by_user_id, get_expenses_fortbl_by_user_id, init_db, \
-    get_all_months, get_expenses_by_month
+    get_all_months, get_expenses_by_month, aggregate_income_by_month_and_category, get_income_months
 
 logging.basicConfig(level=logging.INFO)
 
@@ -360,6 +360,33 @@ async def recommend_savings(request: Request):
     return templates.TemplateResponse("recommend_savings.html",
                                       {"request": request, "recommended_amount": recommended_amount,
                                       "user": user})
+
+
+@app.get("/income_dashboard", response_class=HTMLResponse)
+async def income_dashboard(request: Request, month: str = None):
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return templates.TemplateResponse(
+            "login.html", {"request": request, "error": "Please login first"}
+        )
+
+    months_list = get_income_months()
+    user = get_user_by_id(user_id)
+    income_data = []
+    if month:
+        # Aggregate user income filtered by category & month
+        income_data = aggregate_income_by_month_and_category(user_id, month)
+
+    return templates.TemplateResponse(
+        "income_dashboard.html",
+        {
+            "request": request,
+            "months": months_list,
+            "income": income_data,
+            "selected_month": month,
+            "user": user
+        },
+    )
 
 
 if __name__ == "__main__":
