@@ -271,8 +271,7 @@ def update_user_profile(user_id, username=None, password=None, profile_image=Non
         updates["password"] = password
     if profile_image:
         updates["profile_image"] = profile_image
-
-    db.users.update_one({"_id": user_id}, {"$set": updates})
+    db.users.update_one({"_id": ObjectId(user_id)}, {"$set": updates})
 
 # Expense operations
 def create_expense(user_id, category, amount, date, description):

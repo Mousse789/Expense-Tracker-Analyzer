@@ -208,10 +208,9 @@ async def profile(request: Request):
 
 
 @app.post("/profile")
-async def update_profile(request: Request, new_username: str = Form(...), new_password: Optional[str] = Form(None),
+async def update_profile(request: Request, username: str = Form(...), password: Optional[str] = Form(None),
                          profile_image: UploadFile = File(None)):
     user_id = request.cookies.get("user_id")  # Get user from cookies
-
     # Fetch current user data
     user = get_user_by_id(user_id)
     if not user:
@@ -219,19 +218,19 @@ async def update_profile(request: Request, new_username: str = Form(...), new_pa
 
     # Handle password update (if new password is provided)
     hashed_password = None
-    if new_password:
-        hashed_password = pwd_context.hash(new_password)
+    if password:
+        hashed_password = pwd_context.hash(password)
 
     # Handle file upload
     filename = None
-    if profile_image:
+    if profile_image.filename:
         filename = secure_filename(profile_image.filename)
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         with open(file_path, "wb") as buffer:
             buffer.write(await profile_image.read())
 
     # Update user profile
-    update_user_profile(user_id, new_username, hashed_password, filename)
+    update_user_profile(user_id, username, hashed_password, filename)
 
     return RedirectResponse(url="/profile", status_code=303)
 
