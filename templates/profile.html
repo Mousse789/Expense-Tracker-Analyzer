@@ -5,12 +5,9 @@
 {% block content %}
 <style>
     body {
-        background: url('{{ request.url_for('static', path='icons/backgroundprofile.jpg') }}') no-repeat center center;
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        height: 125vh;
-        color: white;
     }
     .card {
         background: rgba(255, 255, 255, 0.9); /* Lighten the card background for better readability */
@@ -39,7 +36,7 @@
     }
 </style>
 
-<div class="row justify-content-center align-items-center min-vh-100">
+<div class="row justify-content-center align-items-center">
     <div class="col-md-6 col-lg-4">
         <div class="card shadow-sm">
             <div class="card-body">

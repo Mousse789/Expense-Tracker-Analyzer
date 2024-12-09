@@ -1,33 +1,54 @@
 {% extends "base.html" %}
 
+{% block title %}View Income{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
         <h2 class="text-center">Your Income</h2>
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Source</th>
-            <th>Amount</th>
-            <th>Date</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% if income %}
+        <table id="incomeTable" class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <th>Source</th>
+                <th>Amount</th>
+                <th>Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if income %}
             {% for record in income %}
-                <tr>
-                    <td>{{ record["source"] }}</td>
-                    <td>{{ record["amount"] }}</td>
-                    <td>{{ record["date"] }}</td>
-                </tr>
+            <tr>
+                <td>{{ record["source"] }}</td>
+                <td>{{ record["amount"] }}</td>
+                <td>{{ record["date"] }}</td>
+            </tr>
             {% endfor %}
-        {% else %}
+            {% else %}
             <tr>
                 <td colspan="3" class="text-center">No income records found</td>
             </tr>
-        {% endif %}
-    </tbody>
-</table>
-            </div>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
+<script>
+    $(document).ready(function () {
+        $('#incomeTable').DataTable({
+            responsive: true,
+            paging: true,
+            searching: true,
+            ordering: true,
+            lengthChange: true,
+            pageLength: 10
+        });
+    });
+</script>
 {% endblock %}

@@ -58,6 +58,10 @@
             margin-top: 40px;
         }
 
+        .container_login {
+            margin-top: 50px;
+        }
+
         h1, h2, h3, h4, h5, h6 {
             font-weight: 700;
             color: #2d3436; /* Neutral dark color */
@@ -153,9 +157,9 @@
 
 <!-- Main Content -->
 {% if user %}
-    <div class="container" style="height: calc(100vh - 150px)">
+    <div class="container" style="height: calc(100vh - 150px);  overflow-y: auto">
 {% else %}
-    <div class="container" style="height: calc(100vh - 150px); background: none;">
+    <div class="container_login" style="height: calc(100vh - 150px); background: none;">
 {% endif %}
     {% block content %}{% endblock %}
 </div>

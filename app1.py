@@ -255,8 +255,8 @@ async def get_add_income_page(request: Request):
     user_id = request.cookies.get("user_id")
     if not user_id:
         return RedirectResponse(url=request.url_for("login"), status_code=303)
-
-    return templates.TemplateResponse("add_income.html", {"request": request})
+    user = get_user_by_id(user_id)
+    return templates.TemplateResponse("add_income.html", {"request": request, "user": user})
 
 @app.post("/add_income", response_class=RedirectResponse)
 async def add_income(
@@ -269,6 +269,8 @@ async def add_income(
 
     if not user_id:
         return RedirectResponse(url="/login")
+
+    user = get_user_by_id(user_id)
 
     create_income(user_id, source, amount, date)
 
@@ -288,9 +290,10 @@ async def view_income(request: Request):
         return RedirectResponse(url="/login")
     # Simulate retrieving income data from the database for a specific user
     income = get_income_by_user_id(user_id)
+    user = get_user_by_id(user_id)
 
     # Render the view_income.html template with the incomes
-    return templates.TemplateResponse("view_income.html", {"request": request, "income": income})
+    return templates.TemplateResponse("view_income.html", {"request": request, "income": income, "user": user})
 
 
 @app.get("/predict_expenses")
@@ -331,6 +334,7 @@ async def predict_expenses(request: Request):
     labels = dates + ['Next Month']
     actual_expenses = amounts + [None]
     predicted_expenses = [None] * len(amounts) + [next_month_prediction]
+    user = get_user_by_id(user_id)
 
     # Return the template response with the data
     return templates.TemplateResponse("predict_expenses.html", {
@@ -338,7 +342,8 @@ async def predict_expenses(request: Request):
         "prediction": next_month_prediction,
         "labels": labels,
         "actual_expenses": actual_expenses,
-        "predicted_expenses": predicted_expenses
+        "predicted_expenses": predicted_expenses,
+        "user": user
     })
 
 
@@ -346,13 +351,15 @@ async def predict_expenses(request: Request):
 async def recommend_savings(request: Request):
     # Authenticate user based on cookies (or implement session checking here)
     user_id = request.cookies.get("user_id")  # Get the user ID from cookies/session
+    user = get_user_by_id(user_id)
 
     # Get the recommended savings amount for the user
     recommended_amount = recommend_savings_plan(user_id)
 
     # Render the template with the recommended savings amount
     return templates.TemplateResponse("recommend_savings.html",
-                                      {"request": request, "recommended_amount": recommended_amount})
+                                      {"request": request, "recommended_amount": recommended_amount,
+                                      "user": user})
 
 
 if __name__ == "__main__":
