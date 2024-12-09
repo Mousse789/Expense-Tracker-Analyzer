@@ -57,12 +57,26 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     user_id = request.cookies.get('user_id')
+    flash_message = request.cookies.get('flash_message')  # Get flash message from cookies
+
+    # If user is not logged in, return login page and remove flash message cookie
+    if not user_id:
+        response = templates.TemplateResponse("login.html", {"request": request})
+        response.delete_cookie('flash_message')  # Remove flash message if it exists
+        return response
+
+    response = templates.TemplateResponse("home.html", {
+        "request": request,
+        "flash_message": flash_message,
+    })
     if user_id:
         user = get_user_by_id(user_id)
         model, scaler = train_lstm_model(user_id)
         next_month_prediction = predict_next_month_lstm(user_id, model, scaler)
-        return templates.TemplateResponse("home.html", {"request": request, "prediction": next_month_prediction, "user": user})
-    return templates.TemplateResponse("login.html", {"request": request})
+        response = templates.TemplateResponse("home.html", {"request": request, "prediction": next_month_prediction, "user": user, "flash_message": flash_message})
+        # Remove the flash message from the cookies once it is displayed
+        response.delete_cookie('flash_message')
+    return response
 
 @app.get("/login", response_class=HTMLResponse)
 async def get_login_page(request: Request):
@@ -136,7 +150,7 @@ async def add_expense(
     create_expense(user_id, category, amount, date, description)
 
     # Redirect to the view_expenses page with a success message
-    response = RedirectResponse(url="/view_expenses", status_code=303)
+    response = RedirectResponse(url="/", status_code=303)
     response.set_cookie(key="message", value="Expense added!", max_age=5)
     return response
 
@@ -258,10 +272,11 @@ async def add_income(
         return RedirectResponse(url="/login")
 
     create_income(user_id, source, amount, date)
-    #Any flash message???????
 
     # Redirect to the view income page after adding income
-    return RedirectResponse(url="/view_income", status_code=303)
+    response = RedirectResponse(url="/", status_code=303)
+    response.set_cookie("flash_message", "Income added successfully", path="/", samesite="Lax")
+    return response
 
 
 # Endpoint to view income
