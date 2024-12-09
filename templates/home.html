@@ -20,6 +20,24 @@
         font-weight: bold;
     }
 
+    .flash-message {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        z-index: 10;
+        display: none; /* Hidden by default */
+    }
+
+    .flash-message.show {
+        display: block; /* Displayed when class is added */
+    }
+
     .card-container {
         display: flex;
         flex-wrap: wrap;
@@ -94,6 +112,13 @@
 </style>
 
 <div class="container" style="background: white">
+    <!-- Flash message section -->
+    {% if flash_message %}
+    <div class="flash-message show">
+        {{ flash_message }}
+    </div>
+    {% endif %}
+
     <h1 class="display-4">Expense Tracker & Analyzer</h1>
     <p class="lead">Manage your finances effortlessly and effectively.</p>
     <hr class="my-4" style="border-color: white;">
