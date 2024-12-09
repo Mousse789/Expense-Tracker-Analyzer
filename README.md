@@ -1,46 +1,39 @@
 Expense Tracker and Analyzer
-Expense Tracker and Analyzer is a comprehensive personal finance management application designed to help users effectively monitor, analyze, and manage their expenses. Leveraging advanced machine learning algorithms and NLP, this app offers insightful expense clustering, anomaly detection, and predictive analytics, empowering users to make informed financial decisions.
+Expense Tracker and Analyzer is a comprehensive personal finance management application designed to help users efficiently track, analyze, and manage their expenses. It features a user-friendly GUI, leverages FastAPI for high performance, and utilizes MongoDB for robust data storage. With advanced machine learning algorithms, the app offers insightful expense categorization, predictive analytics, and real-time data processing, empowering users to make informed financial decisions effortlessly.
 
 Key Features:
-Expense Tracking:
-
-Easily add and categorize expenses with a user-friendly interface.
-View detailed expense records with date, amount, category, and description.
-Clustering and Analysis:
-
-Apply advanced clustering techniques (K-Means, Hierarchical, DBSCAN) to group similar expenses for deeper insights.
-Visualize expense clusters to identify spending patterns and optimize your budget.
-Anomaly Detection:
-
-Detect unusual spending activities using Isolation Forest and Autoencoder models.
-Get alerts on potential fraudulent transactions or unexpected spending spikes.
-Predictive Analytics:
-
+User Login/Register
+The application includes a secure and efficient user authentication system with features for user registration and login. It uses bcrypt to hash and securely store passwords, ensuring robust protection against unauthorized access.
+Add/View Expenses
+Easily add and categorize expenses with a user-friendly interface. View detailed expense records with date, amount, category, and description.
+Monthly Expense Summary Visualization
+Modern, responsive design with easy navigation. Visualize your data with clear, informative charts and graphs.
+Predict Expenses
 Predict future expenses with an LSTM-based model trained on your historical data.
-Plan your budget more effectively by anticipating next month's expenses.
-Goal Setting and Tracking:
-
-Set financial goals and track your progress towards achieving them.
-Stay motivated with clear visualizations of your savings and goals.
-Income Management:
-
+Add/View Income
 Record and categorize your income sources.
-Analyze your income patterns alongside your expenses for a complete financial overview.
-User Authentication and Security:
-
-Secure login with Google OAuth integration.
-Profile management with options to update username, password, and profile image.
-Interactive and Intuitive UI:
-
-Modern, responsive design with easy navigation.
-Visualize your data with clear, informative charts and graphs.
-Savings Recommendations:
-
+Recommend Savings
 Get personalized savings plan recommendations based on your spending habits.
+
+
 Technical Highlights:
-Backend: Flask, SQLite, TensorFlow, Scikit-learn
+Backend: FastAPI, MongoDB, TensorFlow, Scikit-learn
 Frontend: HTML, CSS, JavaScript
-Machine Learning Models: LSTM for expense prediction, Isolation Forest for anomaly detection, K-Means, Hierarchical Clustering, and DBSCAN for expense clustering.
-Authentication: Google OAuth for secure user login.
-Deployment: Compatible with various hosting platforms for easy deployment.
+Machine Learning Models: LSTM for expense prediction, MinMaxScaler for data normalization, NearestNeighbors for savings recommendation.
+
+Project Web Application Initialization:
+Set up a virtual environment
+Create a Virtual Environment: python -m venv venv
+
+Activate the Virtual Environment:
+On Linux/macOS: source venv/bin/activate
+On Windows: venv\Scripts\activate
+
+Install Dependencies:
+pip install -r requirements.txt
+
+Run the Application
+uvicorn app1:app --reload
+App runs on http://127.0.0.1:8000
+
 Expense Tracker and Analyzer is the ultimate tool for anyone looking to gain control over their finances, understand their spending habits, and achieve their financial goals with confidence.
