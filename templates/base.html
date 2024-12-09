@@ -44,12 +44,29 @@
             position: fixed;
             top: 100px;
             right: 20px;
-            background: #333;
+            background: linear-gradient(135deg, #6c5ce7, #74b9ff);
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 15px 25px;
+            border-radius: 8px;
             display: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            font-size: 1rem;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        #toast.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #toast.hide {
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
 
         .profile-pic {
@@ -192,27 +209,33 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            if (toast) {
-                toast.innerText = message;
-                toast.style.display = 'block';
-                setTimeout(() => {
-                    toast.style.display = 'none';
-                }, 5000); // Hide after 3 seconds
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            function showToast(message) {
+                const toast = document.getElementById('toast');
+                if (toast) {
+                    toast.innerText = message;
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        toast.classList.add('hide');
+                        setTimeout(() => {
+                            toast.style.display = 'none';
+                            toast.classList.remove('hide');
+                        }, 500); // Match the transition duration
+                    }, 3000); // Display duration
+                }
             }
-        }
 
-        // Display a flash message if it exists
-        {% if flash_message %}
-        showToast("{{ flash_message }}");
-        {% endif %}
-    });
-</script>
+            // Display a flash message if it exists
+            {% if flash_message %}
+            showToast("{{ flash_message }}");
+            {% endif %}
+        });
+    </script>
+
 {% block scripts %}{% endblock %}
 
-    <div id="toast" style="display: none;">This is a toast message</div>
+<div id="toast"></div>
 </body>
 </html>
