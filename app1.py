@@ -154,7 +154,7 @@ async def add_expense(
 
     # Redirect to the view_expenses page with a success message
     response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie(key="message", value="Expense added!", max_age=5)
+    response.set_cookie(key="flash_message", value="Expense added successfully!", max_age=5)
     return response
 
 
@@ -164,14 +164,20 @@ async def view_expenses(request: Request):
     if not user_id:
         return templates.TemplateResponse("login.html", {"request": request, "error": "Please login first"})
 
+    flash_message = request.cookies.get("flash_message")
+    current_url = str(request.url)
     expenses = get_expenses_fortbl_by_user_id(user_id)
     user = get_user_by_id(user_id)
     if not expenses:
-        raise HTTPException(status_code=404, detail="No expenses found for this user.")
-    current_url = str(request.url)
-    return templates.TemplateResponse("view_expenses.html", {"request": request, "expenses": expenses, "user": user, "current_url": current_url})
+        raise HTTPException(status_code=404, detail="No expenses found.")
 
-
+    response = templates.TemplateResponse(
+        "view_expenses.html",
+        {"request": request, "expenses": expenses, "user": user, "flash_message": flash_message,
+        "current_url": current_url}
+    )
+    response.delete_cookie("flash_message")
+    return response
 @app.api_route("/expenses_by_month", methods=["GET", "POST"], response_class=HTMLResponse)
 async def expenses_by_month(
     request: Request,

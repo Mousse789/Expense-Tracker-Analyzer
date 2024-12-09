@@ -40,6 +40,18 @@
             margin-left: 30px;
         }
 
+        #toast {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
         .profile-pic {
             width: 40px;
             height: 40px;
@@ -180,7 +192,27 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.innerText = message;
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 5000); // Hide after 3 seconds
+            }
+        }
 
+        // Display a flash message if it exists
+        {% if flash_message %}
+        showToast("{{ flash_message }}");
+        {% endif %}
+    });
+</script>
 {% block scripts %}{% endblock %}
+
+    <div id="toast" style="display: none;">This is a toast message</div>
 </body>
 </html>
