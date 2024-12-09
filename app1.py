@@ -73,7 +73,9 @@ async def home(request: Request):
         user = get_user_by_id(user_id)
         model, scaler = train_lstm_model(user_id)
         next_month_prediction = predict_next_month_lstm(user_id, model, scaler)
-        response = templates.TemplateResponse("home.html", {"request": request, "prediction": next_month_prediction, "user": user, "flash_message": flash_message})
+        current_url = str(request.url)
+        response = templates.TemplateResponse("home.html", {"request": request, "prediction": next_month_prediction, "user": user, "flash_message": flash_message,
+          "current_url": current_url})
         # Remove the flash message from the cookies once it is displayed
         response.delete_cookie('flash_message')
     return response
@@ -129,8 +131,9 @@ async def get_add_expense_page(request: Request):
     user_id = request.cookies.get("user_id")
     if not user_id:
         return templates.TemplateResponse("login.html", {"request": request, "error": "Please login first"})
+    current_url = str(request.url)
     user = get_user_by_id(user_id)
-    return templates.TemplateResponse("add_expense.html", {"request": request, "user": user})
+    return templates.TemplateResponse("add_expense.html", {"request": request, "user": user, "current_url": current_url})
 
 @app.post("/add_expense")
 async def add_expense(
@@ -165,7 +168,8 @@ async def view_expenses(request: Request):
     user = get_user_by_id(user_id)
     if not expenses:
         raise HTTPException(status_code=404, detail="No expenses found for this user.")
-    return templates.TemplateResponse("view_expenses.html", {"request": request, "expenses": expenses, "user": user})
+    current_url = str(request.url)
+    return templates.TemplateResponse("view_expenses.html", {"request": request, "expenses": expenses, "user": user, "current_url": current_url})
 
 
 @app.api_route("/expenses_by_month", methods=["GET", "POST"], response_class=HTMLResponse)
@@ -191,6 +195,7 @@ async def expenses_by_month(
     expenses_by_category = {}
 
     user = get_user_by_id(user_id)
+    current_url = str(request.url)
 
     if selected_month:
         # Call DB logic for data fetch
@@ -205,6 +210,7 @@ async def expenses_by_month(
             "all_months": all_months,
             "selected_month": selected_month,
             "expense_data": expenses_by_category,
+            "current_url": current_url,
             "user": user
         },
     )
@@ -215,10 +221,11 @@ async def profile(request: Request):
     # Simulate fetching the user from cookies (authentication)
     user_id = request.cookies.get("user_id")
     user = get_user_by_id(user_id)
+    current_url = str(request.url)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    return templates.TemplateResponse("profile.html", {"request": request, "user": user})
+    return templates.TemplateResponse("profile.html", {"request": request, "user": user, "current_url": current_url})
 
 
 @app.post("/profile")
@@ -256,7 +263,8 @@ async def get_add_income_page(request: Request):
     if not user_id:
         return RedirectResponse(url=request.url_for("login"), status_code=303)
     user = get_user_by_id(user_id)
-    return templates.TemplateResponse("add_income.html", {"request": request, "user": user})
+    current_url = str(request.url)
+    return templates.TemplateResponse("add_income.html", {"request": request, "user": user, "current_url": current_url})
 
 @app.post("/add_income", response_class=RedirectResponse)
 async def add_income(
@@ -291,9 +299,10 @@ async def view_income(request: Request):
     # Simulate retrieving income data from the database for a specific user
     income = get_income_by_user_id(user_id)
     user = get_user_by_id(user_id)
+    current_url = str(request.url)
 
     # Render the view_income.html template with the incomes
-    return templates.TemplateResponse("view_income.html", {"request": request, "income": income, "user": user})
+    return templates.TemplateResponse("view_income.html", {"request": request, "income": income, "user": user, "current_url": current_url})
 
 
 @app.get("/predict_expenses")
@@ -312,14 +321,14 @@ async def predict_expenses(request: Request):
     if not model or not scaler:
         logging.error(f"Model training failed for user {user_id} due to insufficient data.")
         return templates.TemplateResponse("predict_expenses.html",
-                                          {"request": request, "error": "Not enough data to train the model."})
+                                          {"request": request, "error": "Not enough data to train the model.", "current_url": current_url})
 
     # Make the prediction
     next_month_prediction = predict_next_month_lstm(user_id, model, scaler)
     if next_month_prediction is None:
         logging.error(f"Prediction could not be made for user {user_id}")
         return templates.TemplateResponse("predict_expenses.html",
-                                          {"request": request, "error": "Not enough data to make a prediction."})
+                                          {"request": request, "error": "Not enough data to make a prediction.", "current_url": current_url})
 
     # Prepare data for rendering
     next_month_prediction = float(next_month_prediction)
@@ -335,6 +344,7 @@ async def predict_expenses(request: Request):
     actual_expenses = amounts + [None]
     predicted_expenses = [None] * len(amounts) + [next_month_prediction]
     user = get_user_by_id(user_id)
+    current_url = str(request.url)
 
     # Return the template response with the data
     return templates.TemplateResponse("predict_expenses.html", {
@@ -343,6 +353,7 @@ async def predict_expenses(request: Request):
         "labels": labels,
         "actual_expenses": actual_expenses,
         "predicted_expenses": predicted_expenses,
+        "current_url": current_url,
         "user": user
     })
 
@@ -355,11 +366,13 @@ async def recommend_savings(request: Request):
 
     # Get the recommended savings amount for the user
     recommended_amount = recommend_savings_plan(user_id)
+    current_url = str(request.url)
 
     # Render the template with the recommended savings amount
     return templates.TemplateResponse("recommend_savings.html",
                                       {"request": request, "recommended_amount": recommended_amount,
-                                      "user": user})
+                                      "current_url": current_url,
+                                      "user": user })
 
 
 @app.get("/income_dashboard", response_class=HTMLResponse)
@@ -372,6 +385,7 @@ async def income_dashboard(request: Request, month: str = None):
 
     months_list = get_income_months()
     user = get_user_by_id(user_id)
+    current_url = str(request.url)
     income_data = []
     if month:
         # Aggregate user income filtered by category & month
@@ -384,6 +398,7 @@ async def income_dashboard(request: Request, month: str = None):
             "months": months_list,
             "income": income_data,
             "selected_month": month,
+            "current_url": current_url,
             "user": user
         },
     )
