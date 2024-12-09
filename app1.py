@@ -284,13 +284,11 @@ async def add_income(
     if not user_id:
         return RedirectResponse(url="/login")
 
-    user = get_user_by_id(user_id)
-
     create_income(user_id, source, amount, date)
 
     # Redirect to the view income page after adding income
     response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie("flash_message", "Income added successfully", path="/", samesite="Lax")
+    response.set_cookie("flash_message", "Income added successfully", max_age=5)
     return response
 
 
