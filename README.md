@@ -24,3 +24,19 @@
 - Machine Learning Models 
   -- Tensorflow & Keras (LSTM models) for expenses prediction, Scikit-learn (MinMaxScaler) for data normalization, and (NearestNeighbors) for savings recommendation.
 
+**Project Web Application Initialization:**
+Set up a virtual environment
+Create a Virtual Environment: python -m venv venv
+
+**Activate the Virtual Environment:**
+On Linux/macOS: source venv/bin/activate
+On Windows: venv\Scripts\activate
+
+**Install Dependencies:**
+pip install -r requirements.txt
+
+**Run the Application:**
+uvicorn app1:app --reload
+App runs on http://127.0.0.1:8000
+
+Expense Tracker and Analyzer is the ultimate tool for anyone looking to gain control over their finances, understand their spending habits, and achieve their financial goals with confidence.
