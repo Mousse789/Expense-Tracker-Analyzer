@@ -1,6 +1,6 @@
 # Expense-Tracker-Analyzer
-**The Expense Tracker & Analyzer will allow you to have:
-**- Secure User Authentication
+**The Expense Tracker & Analyzer will allow you to have:**
+- Secure User Authentication
   1) User registration and login system
   2) User profile management
 - Comprehensive Personal Finance Management
@@ -14,8 +14,8 @@
     c) Personalized savings recommendations
 - Data Storage
 
-**Required Technologies/Tools
-**- Backend
+**Required Technologies/Tools**
+- Backend
     -- FastAPI (high-performance REST API framework)
 - Frontend
     -- Jinja2 Templates, Bootstrap, JQuery
