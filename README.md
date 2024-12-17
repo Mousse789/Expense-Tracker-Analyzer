@@ -5,13 +5,13 @@
   2) User profile management
 - Comprehensive Personal Finance Management
   1) Expense Management Features
-    1) Add, view, and categorize expenses
-    2) Visualize monthly expense summaries with intuitive charts and graphs
-    3) Predict future expenses
+       - Add, view, and categorize expenses
+       - Visualize monthly expense summaries with intuitive charts and graphs
+       - Predict future expenses
   3) Income Tracking
-    1) Record and categorize income sources
-    2) Visualize monthly income breakdown with intuitive charts and graphs
-    3) Personalized savings recommendations
+       - Record and categorize income sources
+       - Visualize monthly income breakdown with intuitive charts and graphs
+       - Personalized savings recommendations
 - Data Storage
 
 **Required Technologies/Tools**
