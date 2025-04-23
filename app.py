@@ -1,310 +1,412 @@
-from flask import Flask, redirect, url_for, session, request, render_template, flash, g
-from authlib.integrations.flask_client import OAuth
-from werkzeug.utils import secure_filename
-import os
-from models import get_user_by_username, create_user, get_expenses_by_user_id, create_expense, get_user_by_id, update_user_profile, create_income, get_income_by_user_id, get_expenses_fortbl_by_user_id
 import logging
-import sqlite3
-from ml_model import train_lstm_model,\
-    predict_next_month_lstm, detect_anomalies, cluster_expenses, recommend_savings_plan,fetch_expense_data,detect_anomalies_autoencoder
-from flask_bcrypt import Bcrypt
+import os
+from typing import Optional
+
 import pandas as pd
+import uvicorn
+from fastapi import FastAPI, HTTPException, Depends, Form, UploadFile, File
+from fastapi import Request
+from passlib.context import CryptContext
+from starlette.responses import HTMLResponse, RedirectResponse
+from starlette.staticfiles import StaticFiles
+from werkzeug.utils import secure_filename
+from fastapi.templating import Jinja2Templates
+
+from ml_model1 import train_lstm_model, predict_next_month_lstm, recommend_savings_plan, fetch_expense_data
+from models import get_user_by_username, get_user_by_id, create_user, create_expense, get_user_by_id, \
+    update_user_profile, create_income, get_income_by_user_id, get_expenses_fortbl_by_user_id, init_db, \
+    get_all_months, get_expenses_by_month, aggregate_income_by_month_and_category, get_income_months
+
 logging.basicConfig(level=logging.INFO)
 
-app = Flask(__name__)
+app = FastAPI()
 app.secret_key = 'your_secret_key'
-bcrypt = Bcrypt(app)
+# Serve static files from the "static" folder
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+templates = Jinja2Templates(directory="templates")
 # Configure upload folder
-app.config['UPLOAD_FOLDER'] = 'static/profile_images'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB limit
+UPLOAD_FOLDER = 'static/profile_images'
+MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB limit
+
+
+# Initialize MongoDB collections at startup
+@app.on_event("startup")
+async def startup_db():
+    init_db()  # Ensure collections are created on app startup
+
 
 # Ensure the upload folder exists
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
-# Configure OAuth
-oauth = OAuth(app)
-google = oauth.register(
-    name='google',
-    client_id='YOUR_GOOGLE_CLIENT_ID',
-    client_secret='YOUR_GOOGLE_CLIENT_SECRET',
-    access_token_url='https://accounts.google.com/o/oauth2/token',
-    access_token_params=None,
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
-    authorize_params=None,
-    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
-    client_kwargs={'scope': 'openid email profile'},
-)
-@app.route('/login/google')
-def google_login():
-    redirect_uri = url_for('google_authorized', _external=True)
-    return google.authorize_redirect(redirect_uri)
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
-@app.route('/login/google/authorized')
-def google_authorized():
-    token = google.authorize_access_token()
-    user_info = google.parse_id_token(token)
-
-    session['google_token'] = token
-    session['user_id'] = user_info['sub']
-    session['username'] = user_info['name']
-    session['email'] = user_info['email']
-    return redirect(url_for('home'))
+logging.basicConfig(level=logging.INFO)
 
 
+# Function to hash a password
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
 
-# Function to run before every request
-@app.before_request
-def load_user():
-    user_id = session.get('user_id')
+
+# Function to verify a password
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    user_id = request.cookies.get('user_id')
+    flash_message = request.cookies.get('flash_message')  # Get flash message from cookies
+
+    # If user is not logged in, return login page and remove flash message cookie
+    if not user_id:
+        response = templates.TemplateResponse("login.html", {"request": request})
+        response.delete_cookie('flash_message')  # Remove flash message if it exists
+        return response
+
+    response = templates.TemplateResponse("home.html", {
+        "request": request,
+        "flash_message": flash_message,
+    })
     if user_id:
-        g.user = get_user_by_id(user_id)
-    else:
-        g.user = None
-
-def create_connection():
-    conn = None
-    try:
-        conn = sqlite3.connect('personal_finance.db')
-    except sqlite3.Error as e:
-        print(e)
-    return conn
-
-@app.route('/')
-def home():
-    if 'user_id' in session:
-        user_id = session['user_id']
+        user = get_user_by_id(user_id)
         model, scaler = train_lstm_model(user_id)
         next_month_prediction = predict_next_month_lstm(user_id, model, scaler)
-        return render_template('home.html', prediction=next_month_prediction)
-    return redirect(url_for('login'))
+        current_url = str(request.url)
+        response = templates.TemplateResponse("home.html", {"request": request, "prediction": next_month_prediction, "user": user, "flash_message": flash_message,
+          "current_url": current_url})
+        # Remove the flash message from the cookies once it is displayed
+        response.delete_cookie('flash_message')
+    return response
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = get_user_by_username(username)
-        if user and bcrypt.check_password_hash(user['password'], password):
-            session['user_id'] = str(user['_id'])
-            flash('Login successful!', 'success')
-            return redirect(url_for('home'))
-        else:
-            flash('Invalid credentials', 'danger')
-    return render_template('login.html')
+@app.get("/login", response_class=HTMLResponse)
+async def get_login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        if create_user(username, hashed_password):
-            flash('Registration successful!', 'success')
-            return redirect(url_for('login'))
-        else:
-            flash('Registration failed. Username may already be taken.', 'danger')
-    return render_template('register.html')
+@app.get("/register", response_class=HTMLResponse)
+async def get_register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
 
-@app.route('/logout')
-def logout():
-    session.pop('user_id', None)
-    flash('You have been logged out.', 'success')
-    return redirect(url_for('login'))
+@app.post("/login")
+async def login(
+        request: Request,
+        username: str = Form(...),
+        password: str = Form(...)
+):
+    user = get_user_by_username(username)
+    if user and verify_password(password, user["password"]):
+        response = templates.TemplateResponse("home.html", {"request": request, "user": user})
+        response.set_cookie(key="user_id", value=str(user["_id"]))
+        return response
+    return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
 
-@app.route('/add_expense', methods=['GET', 'POST'])
-def add_expense():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    if request.method == 'POST':
-        category = request.form['category']
-        amount = request.form['amount']
-        date = request.form['date']
-        description = request.form.get('description', '') # NEWLY ADDED
-        create_expense(session['user_id'], category, amount, date, description)
-        flash('Expense added!', 'success')
-        return redirect(url_for('view_expenses'))
-    return render_template('add_expense.html')
 
-@app.route('/view_expenses')
-def view_expenses():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    expenses = get_expenses_fortbl_by_user_id(session['user_id'])
-    return render_template('view_expenses.html', expenses=expenses)
+@app.post("/register")
+async def register(
+        request: Request,
+        username: str = Form(...),
+        password: str = Form(...)
+):
+    if get_user_by_username(username):
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Username already taken"})
 
-@app.route('/profile', methods=['GET', 'POST'])
-def profile():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    hashed_password = hash_password(password)
+    is_user_created = create_user(username, hashed_password)
 
-    user_id = session['user_id']
+    if is_user_created:
+        return templates.TemplateResponse("login.html", {"request": request, "message": "Registration successful!"})
+    else:
+        return templates.TemplateResponse("register.html", {"request": request, "message": "Error creating user"})
+
+
+@app.get("/logout")
+async def logout(request: Request):
+    response = templates.TemplateResponse("login.html", {"request": request})
+    response.delete_cookie("user_id")
+    return response
+
+@app.get("/add_expense", response_class=HTMLResponse)
+async def get_add_expense_page(request: Request):
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Please login first"})
+    current_url = str(request.url)
     user = get_user_by_id(user_id)
+    return templates.TemplateResponse("add_expense.html", {"request": request, "user": user, "current_url": current_url})
 
-    if request.method == 'POST':
-        new_username = request.form['username']
-        new_password = request.form.get('password', None)  # Get the new password if provided
+@app.post("/add_expense")
+async def add_expense(
+        request: Request,
+        category: str = Form(...),
+        amount: float = Form(...),
+        date: str = Form(...),
+        description: str = Form(None),
+):
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        response = RedirectResponse(url="/login", status_code=303)
+        response.set_cookie(key="message", value="Please login first!", max_age=5)
+        return response
 
-        # If a new password is provided, hash it
-        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8') if new_password else None
+    # Call create_expense to insert the data into MongoDB
+    create_expense(user_id, category, amount, date, description)
 
-        # Handle file upload
-        profile_image = None
-        if 'profile_image' in request.files:
-            file = request.files['profile_image']
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(file_path)
-                profile_image = filename
-
-        update_user_profile(user_id, new_username, hashed_password, profile_image)
-        flash('Profile updated!', 'success')
-        return redirect(url_for('profile'))
-
-    return render_template('profile.html', user=user)
-
-@app.route('/add_income', methods=['GET', 'POST'])
-def add_income():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    if request.method == 'POST':
-        source = request.form['source']
-        amount = request.form['amount']
-        date = request.form['date']
-        create_income(session['user_id'], source, amount, date)
-        flash('Income added!', 'success')
-        return redirect(url_for('view_income'))
-
-    return render_template('add_income.html')
-
-@app.route('/view_income')
-def view_income():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    income = get_income_by_user_id(session['user_id'])
-    return render_template('view_income.html', income=income)
+    # Redirect to the view_expenses page with a success message
+    response = RedirectResponse(url="/", status_code=303)
+    response.set_cookie(key="flash_message", value="Expense added successfully!", max_age=5)
+    return response
 
 
-@app.route('/predict_expenses')
-def predict_expenses():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+@app.get("/view_expenses", response_class=HTMLResponse)
+async def view_expenses(request: Request):
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Please login first"})
 
-    user_id = session['user_id']
+    flash_message = request.cookies.get("flash_message")
+    current_url = str(request.url)
+    expenses = get_expenses_fortbl_by_user_id(user_id)
+    user = get_user_by_id(user_id)
+    if not expenses:
+        raise HTTPException(status_code=404, detail="No expenses found.")
 
+    response = templates.TemplateResponse(
+        "view_expenses.html",
+        {"request": request, "expenses": expenses, "user": user, "flash_message": flash_message,
+        "current_url": current_url}
+    )
+    response.delete_cookie("flash_message")
+    return response
+@app.api_route("/expenses_by_month", methods=["GET", "POST"], response_class=HTMLResponse)
+async def expenses_by_month(
+    request: Request,
+    selected_month: str = None,
+):
+    # Handle `GET` requests' query param vs POST form data
+    if request.method == "POST":
+        selected_month = (await request.form()).get('month')
+    else:
+        selected_month = request.query_params.get('month')
+
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        # If user is not logged in
+        return templates.TemplateResponse(
+            "login.html", {"request": request, "error": "Please login first"}
+        )
+
+    all_months = get_all_months(user_id)
+    expenses_by_category = {}
+
+    user = get_user_by_id(user_id)
+    current_url = str(request.url)
+
+    if selected_month:
+        # Call DB logic for data fetch
+        result = get_expenses_by_month(selected_month, user_id)
+        expenses_by_category = {row["category"]: row["total"] for row in result}
+
+    # Send all dynamic data to frontend template
+    return templates.TemplateResponse(
+        "expenses_by_month.html",
+        {
+            "request": request,
+            "all_months": all_months,
+            "selected_month": selected_month,
+            "expense_data": expenses_by_category,
+            "current_url": current_url,
+            "user": user
+        },
+    )
+
+
+@app.get("/profile")
+async def profile(request: Request):
+    # Simulate fetching the user from cookies (authentication)
+    user_id = request.cookies.get("user_id")
+    user = get_user_by_id(user_id)
+    current_url = str(request.url)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return templates.TemplateResponse("profile.html", {"request": request, "user": user, "current_url": current_url})
+
+
+@app.post("/profile")
+async def update_profile(request: Request, username: str = Form(...), password: Optional[str] = Form(None),
+                         profile_image: UploadFile = File(None)):
+    user_id = request.cookies.get("user_id")  # Get user from cookies
+    # Fetch current user data
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Handle password update (if new password is provided)
+    hashed_password = None
+    if password:
+        hashed_password = pwd_context.hash(password)
+
+    # Handle file upload
+    filename = None
+    if profile_image.filename:
+        filename = secure_filename(profile_image.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        with open(file_path, "wb") as buffer:
+            buffer.write(await profile_image.read())
+
+    # Update user profile
+    update_user_profile(user_id, username, hashed_password, filename)
+
+    return RedirectResponse(url="/profile", status_code=303)
+
+
+# Endpoint to add income
+@app.get("/add_income", response_class=HTMLResponse)
+async def get_add_income_page(request: Request):
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return RedirectResponse(url=request.url_for("login"), status_code=303)
+    user = get_user_by_id(user_id)
+    current_url = str(request.url)
+    return templates.TemplateResponse("add_income.html", {"request": request, "user": user, "current_url": current_url})
+
+@app.post("/add_income", response_class=RedirectResponse)
+async def add_income(
+        request: Request,
+        source: str = Form(...),
+        amount: float = Form(...),
+        date: str = Form(...)
+):
+    user_id = request.cookies.get("user_id")  # Get the user ID from session (cookie or other means)
+
+    if not user_id:
+        return RedirectResponse(url="/login")
+
+    create_income(user_id, source, amount, date)
+
+    # Redirect to the view income page after adding income
+    response = RedirectResponse(url="/", status_code=303)
+    response.set_cookie("flash_message", "Income added successfully", max_age=5)
+    return response
+
+
+# Endpoint to view income
+@app.get("/view_income")
+async def view_income(request: Request):
+    user_id = request.cookies.get("user_id")  # Get the user ID from session (cookie or other means)
+
+    # Check if user_id is null or empty, and redirect to login page if not authenticated
+    if not user_id:
+        return RedirectResponse(url="/login")
+    # Simulate retrieving income data from the database for a specific user
+    income = get_income_by_user_id(user_id)
+    user = get_user_by_id(user_id)
+    current_url = str(request.url)
+
+    # Render the view_income.html template with the incomes
+    return templates.TemplateResponse("view_income.html", {"request": request, "income": income, "user": user, "current_url": current_url})
+
+
+@app.get("/predict_expenses")
+async def predict_expenses(request: Request):
+    user_id = request.cookies.get("user_id")  # Authenticate user via cookies
+
+    # Fetch user's expense data
     expenses = fetch_expense_data(user_id)
     if expenses.empty or expenses.shape[0] < 2:  # Check for sufficient historical data
         logging.warning(f"Not enough data available for user {user_id} to make a prediction.")
-        return render_template('predict_expenses.html', error="Not enough data available to make a prediction.")
+        return templates.TemplateResponse("predict_expenses.html", {"request": request,
+                                                                    "error": "Not enough data available to make a prediction."})
 
+    # Train the LSTM model
     model, scaler = train_lstm_model(user_id)
     if not model or not scaler:
         logging.error(f"Model training failed for user {user_id} due to insufficient data.")
-        return render_template('predict_expenses.html', error="Not enough data to train the model.")
+        return templates.TemplateResponse("predict_expenses.html",
+                                          {"request": request, "error": "Not enough data to train the model.", "current_url": current_url})
 
+    # Make the prediction
     next_month_prediction = predict_next_month_lstm(user_id, model, scaler)
     if next_month_prediction is None:
         logging.error(f"Prediction could not be made for user {user_id}")
-        return render_template('predict_expenses.html', error="Not enough data to make a prediction.")
+        return templates.TemplateResponse("predict_expenses.html",
+                                          {"request": request, "error": "Not enough data to make a prediction.", "current_url": current_url})
 
+    # Prepare data for rendering
     next_month_prediction = float(next_month_prediction)
 
     expenses['date'] = pd.to_datetime(expenses['date'])
     expenses.set_index('date', inplace=True)
-    expenses = expenses.resample('ME').sum()
+    expenses = expenses.resample('ME').sum()  # Resample by month-end (ME)
     dates = expenses.index.strftime('%Y-%m').tolist()
     amounts = expenses['amount'].tolist()
 
+    # Add the prediction to the data
     labels = dates + ['Next Month']
     actual_expenses = amounts + [None]
     predicted_expenses = [None] * len(amounts) + [next_month_prediction]
+    user = get_user_by_id(user_id)
+    current_url = str(request.url)
 
-    return render_template('predict_expenses.html', prediction=next_month_prediction,
-                           labels=labels, actual_expenses=actual_expenses, predicted_expenses=predicted_expenses)
+    # Return the template response with the data
+    return templates.TemplateResponse("predict_expenses.html", {
+        "request": request,
+        "prediction": next_month_prediction,
+        "labels": labels,
+        "actual_expenses": actual_expenses,
+        "predicted_expenses": predicted_expenses,
+        "current_url": current_url,
+        "user": user
+    })
 
 
-@app.route('/view_anomalies')
-def view_anomalies():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+@app.get("/recommend_savings")
+async def recommend_savings(request: Request):
+    # Authenticate user based on cookies (or implement session checking here)
+    user_id = request.cookies.get("user_id")  # Get the user ID from cookies/session
+    user = get_user_by_id(user_id)
 
-    user_id = session['user_id']
-    anomalies = detect_anomalies(user_id)
-
-    return render_template('view_anomalies.html', anomalies=anomalies)
-
-@app.route('/detect_anomalies')
-def detect_anomalies_route():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
-    anomalies = detect_anomalies(user_id)
-
-    if anomalies is None:
-        logging.error(f"Anomalies could not be detected for user {user_id}")
-        return render_template('detect_anomalies.html', error="Not enough data to detect anomalies.")
-
-    return render_template('detect_anomalies.html', anomalies=anomalies)
-
-@app.route('/detect_anomalies_autoencoder')
-def detect_anomalies_autoencoder_route():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
-    anomalies_autoencoder = detect_anomalies_autoencoder(user_id)
-
-    if anomalies_autoencoder is None:
-        logging.error(f"Anomalies could not be detected using autoencoder for user {user_id}")
-        return render_template('detect_anomalies_autoencoder.html', error="Not enough data to detect anomalies using autoencoder.")
-
-    return render_template('detect_anomalies_autoencoder.html', anomalies=anomalies_autoencoder)
-
-@app.route('/expense_clusters')
-def view_expense_clusters():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
-    try:
-        clustered_data = cluster_expenses(user_id)
-        clustered_data = clustered_data.to_dict(orient='records')  # Convert DataFrame to list of dictionaries
-    except ValueError as e:
-        flash(str(e), 'danger')
-        return redirect(url_for('home'))
-
-    return render_template('view_clusters.html', clustered_data=clustered_data)
-
-@app.route('/recommend_savings')
-def recommend_savings():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
+    # Get the recommended savings amount for the user
     recommended_amount = recommend_savings_plan(user_id)
+    current_url = str(request.url)
 
-    return render_template('recommend_savings.html', recommended_amount=recommended_amount)
+    # Render the template with the recommended savings amount
+    return templates.TemplateResponse("recommend_savings.html",
+                                      {"request": request, "recommended_amount": recommended_amount,
+                                      "current_url": current_url,
+                                      "user": user })
 
 
-@app.route('/expenses/clusters')
-def expense_clusters():
-    if 'user_id' in session:
-        user_id = session['user_id']
-        method = request.args.get('method', 'kmeans')
-        n_clusters = int(request.args.get('n_clusters', 3))
+@app.get("/income_dashboard", response_class=HTMLResponse)
+async def income_dashboard(request: Request, month: str = None):
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return templates.TemplateResponse(
+            "login.html", {"request": request, "error": "Please login first"}
+        )
 
-        clustered_data = cluster_expenses(user_id, method=method, n_clusters=n_clusters)
-        if clustered_data is not None:
-            clusters = clustered_data.groupby('cluster').apply(lambda x: x.to_dict(orient='records')).to_dict()
-            return render_template('expense_clusters.html', clusters=clusters, method=method, n_clusters=n_clusters)
+    months_list = get_income_months()
+    user = get_user_by_id(user_id)
+    current_url = str(request.url)
+    income_data = []
+    if month:
+        # Aggregate user income filtered by category & month
+        income_data = aggregate_income_by_month_and_category(user_id, month)
 
-        flash('Not enough data for clustering')
-        return redirect(url_for('view_expenses'))
+    return templates.TemplateResponse(
+        "income_dashboard.html",
+        {
+            "request": request,
+            "months": months_list,
+            "income": income_data,
+            "selected_month": month,
+            "current_url": current_url,
+            "user": user
+        },
+    )
 
-    return redirect(url_for('login'))
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)

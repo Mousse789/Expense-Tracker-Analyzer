@@ -1,6 +1,10 @@
 from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
 
-uri = "mongodb+srv://ikedinachimugochukwu:kVE8MslMtMYRZqbt@cs531cluster.gxaub.mongodb.net/?retryWrites=true&w=majority&appName=CS531Cluster"
+load_dotenv()
+
+uri = os.getenv("MONGODB_URI")
 client = MongoClient(uri)
 try:
     database = client.get_database("finances")
